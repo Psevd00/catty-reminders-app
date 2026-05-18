@@ -45,6 +45,10 @@ jobs:
       - name: Patch config for CI
         run: "sed -i 's/\"host\": \"db\"/\"host\": \"127.0.0.1\"/g' config.json"
 
+      # ----- ДОБАВЛЯЕМ ВЫВОД config.json ДЛЯ ДИАГНОСТИКИ -----
+      - name: Show config.json
+        run: cat config.json
+
       - name: Initialize database
         run: |
           sudo apt-get update && sudo apt-get install -y mariadb-client

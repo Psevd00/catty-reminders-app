@@ -13,6 +13,9 @@
       "app": "catty-reminders-app"
     },
     {
+    "tester": "foobar123"
+    },
+    {
       "login": "SA3000UDP",
       "id": "sa3000udp",
       "app": "catty-reminders-app"
