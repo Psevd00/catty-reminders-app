@@ -45,10 +45,6 @@ jobs:
       - name: Patch config for CI
         run: "sed -i 's/\"host\": \"db\"/\"host\": \"127.0.0.1\"/g' config.json"
 
-      # ----- ДОБАВЛЯЕМ ВЫВОД config.json ДЛЯ ДИАГНОСТИКИ -----
-      - name: Show config.json
-        run: cat config.json
-
       - name: Initialize database
         run: |
           sudo apt-get update && sudo apt-get install -y mariadb-client
@@ -92,6 +88,8 @@ jobs:
       - name: Login to GHCR
         uses: docker/login-action@v3
         with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - name: Set lower case owner
+        run: echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -99,5 +97,5 @@ jobs:
           push: true
           build-args: DEPLOY_REF=${{ github.sha }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/catty-reminders-app:latest
-            ghcr.io/${{ github.repository_owner }}/catty-reminders-app:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LC }}/catty-reminders-app:latest
+            ghcr.io/${{ env.OWNER_LC }}/catty-reminders-app:${{ github.sha }}
