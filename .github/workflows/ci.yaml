@@ -53,7 +53,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: test_result, path: test_result.xml }
-
+    
   docker-build:
     runs-on: ubuntu-latest
     needs: pipeline
@@ -69,6 +69,7 @@ jobs:
         with:
           context: .
           push: true
+          build-args: DEPLOY_REF=${{ github.sha }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/catty-reminders-app:latest
             ghcr.io/${{ github.repository_owner }}/catty-reminders-app:${{ github.sha }}
