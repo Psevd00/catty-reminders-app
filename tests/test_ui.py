@@ -46,7 +46,7 @@ def test_successful_login(page: Page, user: User):
   
   # Submit form and wait for navigation
   with page.expect_navigation():
-    page.get_by_text('Login').click()
+    page.get_by_role('button', name='Login').click()
 
   # Then the reminders page is displayed
   expect(page).to_have_title('Reminders | Catty reminders app')

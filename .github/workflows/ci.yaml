@@ -24,6 +24,11 @@ jobs:
           MARIADB_ROOT_PASSWORD: mypass
           MARIADB_DATABASE: catty_reminders
         ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mariadb-admin ping -u root -pmypass"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -40,10 +45,28 @@ jobs:
       - name: Patch config for CI
         run: "sed -i 's/\"host\": \"db\"/\"host\": \"127.0.0.1\"/g' config.json"
 
+      - name: Initialize database
+        run: |
+          sudo apt-get update && sudo apt-get install -y mariadb-client
+          mariadb -h 127.0.0.1 -u root -pmypass catty_reminders -e "
+            CREATE TABLE IF NOT EXISTS users (
+              username VARCHAR(255) PRIMARY KEY,
+              password VARCHAR(255)
+            );
+            INSERT IGNORE INTO users VALUES ('tester', 'foobar123');
+          "
+
       - name: Start app
         run: |
-          nohup uvicorn app.main:app --host 127.0.0.1 --port 8181 &
-          sleep 10
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8181 > app.log 2>&1 &
+          for i in {1..20}; do
+            if curl -s http://127.0.0.1:8181 > /dev/null; then
+              echo "App is up!"
+              break
+            fi
+            sleep 2
+          done
+          cat app.log
 
       - name: Run tests
         env:
