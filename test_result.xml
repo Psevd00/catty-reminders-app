@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="3" time="12.941" timestamp="2026-05-18T23:27:32.007102" hostname="vbox"><testcase classname="tests.test_api" name="test_successful_api_login" time="2.831"><failure message="AssertionError: assert False&#10; +  where False = &lt;APIResponse url='http://localhost:8181/login' status=404 status_text='Not Found'&gt;.ok">catty_api = &lt;playwright._impl._fetch.APIRequestContext object at 0x7f2d4e630d70&gt;
+user = &lt;testlib.inputs.User object at 0x7f2d4eabe510&gt;
+base_url = 'http://localhost:8181'
+
+    def test_successful_api_login(catty_api: APIRequestContext, user: User, base_url: str):
+      response = catty_api.post('/login', form={'username': user.username, 'password': user.password})
+&gt;     assert response.ok
+E     AssertionError: assert False
+E      +  where False = &lt;APIResponse url='http://localhost:8181/login' status=404 status_text='Not Found'&gt;.ok
+
+tests/test_api.py:19: AssertionError</failure></testcase><testcase classname="tests.test_ui" name="test_successful_login[chromium]" time="8.632"><failure message="AssertionError: Locator expected to be visible&#10;Actual value: None&#10;Error: element(s) not found &#10;Call log:&#10;  - Expect &quot;to_be_visible&quot; with timeout 5000ms&#10;  - waiting for locator(&quot;[name=\&quot;username\&quot;]&quot;)">page = &lt;Page url='http://localhost:8181/login'&gt;
+user = &lt;testlib.inputs.User object at 0x7f2d4eabe510&gt;
+
+    def test_successful_login(page: Page, user: User):
+    
+      # Given the login page is displayed
+      page.goto('/login')
+      page.wait_for_load_state('networkidle')
+    
+      # When the user logs into the app with valid credentials
+      # Wait for elements to be ready and visible
+      username_field = page.locator('[name="username"]')
+      password_field = page.locator('[name="password"]')
+    
+&gt;     expect(username_field).to_be_visible()
+E     AssertionError: Locator expected to be visible
+E     Actual value: None
+E     Error: element(s) not found 
+E     Call log:
+E       - Expect "to_be_visible" with timeout 5000ms
+E       - waiting for locator("[name=\"username\"]")
+
+tests/test_ui.py:38: AssertionError</failure></testcase><testcase classname="tests.test_unit" name="test_token_serialization" time="0.249" /></testsuite></testsuites>

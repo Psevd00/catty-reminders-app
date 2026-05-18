@@ -1,14 +1,7 @@
 {
   "base_url": "http://localhost:8181",
-
   "users": [
-    {
-      "username": "heisenberg",
-      "password": "P@ssw0rd"
-    },
-    {
-      "username": "tester",
-      "password": "foobar123"
-    }
+    {"username": "tester", "password": "foobar123"},
+    {"username": "alt_user", "password": "alt_pass"}
   ]
 }
