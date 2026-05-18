@@ -14,6 +14,11 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - catty-network
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-u", "root", "-p${MARIADB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   catty-app:
     image: ${IMAGE}
@@ -24,7 +29,8 @@ services:
     volumes:
       - ./config.json:/catty-reminders-app/config.json:ro
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - catty-network
 
