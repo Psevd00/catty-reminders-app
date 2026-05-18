@@ -36,11 +36,12 @@ jobs:
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Остановить и удалить предыдущие контейнеры этого проекта
+            # Остановить предыдущий стек проекта
             docker compose down --remove-orphans 2>/dev/null || true
             
-            # На всякий случай удалить любые контейнеры, занимающие порт 3306
+            # Принудительно удалить любые контейнеры, занявшие порт 3306 или 8181
             docker rm -f $(docker ps -q --filter "publish=3306") 2>/dev/null || true
+            docker rm -f $(docker ps -q --filter "publish=8181") 2>/dev/null || true
             
             docker compose pull
             docker compose up -d --remove-orphans --force-recreate --timeout 30
