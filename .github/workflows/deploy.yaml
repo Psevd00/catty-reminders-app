@@ -36,15 +36,24 @@ jobs:
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+            # Остановить всё, что связано с проектом
             docker compose down --remove-orphans --volumes 2>/dev/null || true
-
             docker rm -f $(docker ps -q --filter "publish=3306") 2>/dev/null || true
             docker rm -f $(docker ps -q --filter "publish=8181") 2>/dev/null || true
             docker rm -f catty-app catty-db 2>/dev/null || true
 
-            sudo fuser -k 8181/tcp 2>/dev/null || true
+            echo "=== Before cleanup: listeners on 8181 ==="
+            sudo ss -tlnp | grep 8181 || echo "Port 8181 is free"
 
+            sudo fuser -k 8181/tcp 2>/dev/null || true
             sleep 2
+            sudo fuser -k -9 8181/tcp 2>/dev/null || true
+            sleep 2
+
+            sudo systemctl stop nginx apache2 demo 2>/dev/null || true
+
+            echo "=== After cleanup: listeners on 8181 ==="
+            sudo ss -tlnp | grep 8181 || echo "Port 8181 is free"
 
             docker compose pull
             docker compose up -d --remove-orphans --force-recreate --timeout 30
