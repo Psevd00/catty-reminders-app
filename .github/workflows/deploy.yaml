@@ -20,8 +20,9 @@ jobs:
             cd /home/password_123/catty-reminders-app
             OWNER=$(echo "${{ github.repository_owner }}" | tr "[:upper:]" "[:lower:]")
 
+            # Создаём .env с локальным образом и актуальным SHA
             cat > .env <<ENVEOF
-            IMAGE=ghcr.io/$OWNER/catty-reminders-app:${{ github.sha }}
+            IMAGE=ghcr.io/$OWNER/catty-reminders-app:local
             APP_CONTAINER_NAME=catty-app
             DB_CONTAINER_NAME=catty-db
             MARIADB_ROOT_PASSWORD=mypass
@@ -32,31 +33,15 @@ jobs:
             CONTAINER_DB_PORT=3306
             HOST_APP_PORT=8181
             CONTAINER_APP_PORT=8181
+            DEPLOY_REF=${{ github.sha }}
             ENVEOF
 
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            # Остановить всё, что связано с проектом
-            docker compose down --remove-orphans 2>/dev/null || true
-            docker rm -f $(docker ps -q --filter "publish=3306") 2>/dev/null || true
-            docker rm -f $(docker ps -q --filter "publish=8181") 2>/dev/null || true
-            docker rm -f catty-app catty-db 2>/dev/null || true
-
-            echo "=== Before cleanup: listeners on 8181 ==="
-            sudo ss -tlnp | grep 8181 || echo "Port 8181 is free"
-
+            # Останавливаем старые контейнеры
+            docker compose down --remove-orphans --volumes 2>/dev/null || true
             sudo fuser -k 8181/tcp 2>/dev/null || true
+            sudo fuser -k 3306/tcp 2>/dev/null || true
             sleep 2
-            sudo fuser -k -9 8181/tcp 2>/dev/null || true
-            sleep 2
 
-            sudo systemctl stop nginx apache2 demo 2>/dev/null || true
-
-            echo "=== After cleanup: listeners on 8181 ==="
-            sudo ss -tlnp | grep 8181 || echo "Port 8181 is free"
-
-            docker compose pull
-            docker compose up -d --remove-orphans --force-recreate --timeout 30
-          sleep 10
-          docker exec -i catty-db mariadb -u root -pmypass catty_reminders -e "CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) PRIMARY KEY, password VARCHAR(255)); INSERT IGNORE INTO users VALUES ('tester', 'foobar123');"
+            # Запускаем с пересозданием (без pull, образ уже локальный)
+            docker compose up -d --force-recreate --timeout 30
             docker compose ps
