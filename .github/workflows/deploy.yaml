@@ -37,7 +37,7 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Остановить всё, что связано с проектом
-            docker compose down --remove-orphans --volumes 2>/dev/null || true
+            docker compose down --remove-orphans 2>/dev/null || true
             docker rm -f $(docker ps -q --filter "publish=3306") 2>/dev/null || true
             docker rm -f $(docker ps -q --filter "publish=8181") 2>/dev/null || true
             docker rm -f catty-app catty-db 2>/dev/null || true
@@ -57,4 +57,6 @@ jobs:
 
             docker compose pull
             docker compose up -d --remove-orphans --force-recreate --timeout 30
+          sleep 10
+          docker exec -i catty-db mariadb -u root -pmypass catty_reminders -e "CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) PRIMARY KEY, password VARCHAR(255)); INSERT IGNORE INTO users VALUES ('tester', 'foobar123');"
             docker compose ps
