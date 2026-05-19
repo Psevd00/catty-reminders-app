@@ -4,6 +4,7 @@ services:
     container_name: catty-db
     restart: always
     environment:
+      - DEPLOY_REF=${DEPLOY_REF:-local-test}
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - MARIADB_DATABASE=${MARIADB_DATABASE}
       - MARIADB_USER=${MARIADB_USER}
@@ -28,6 +29,7 @@ services:
       - "${HOST_APP_PORT}:${CONTAINER_APP_PORT}"
     volumes:
       - ./config.json:/catty-reminders-app/config.json:ro
+      - ./app/routers/login.py:/catty-reminders-app/app/routers/login.py:ro
     depends_on:
       db:
         condition: service_healthy
