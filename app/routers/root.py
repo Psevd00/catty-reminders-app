@@ -1,5 +1,5 @@
 """
-This module provides routes for authentication.
+This module provides routes for root and favicon.
 """
 
 # --------------------------------------------------------------------------------
@@ -7,11 +7,8 @@ This module provides routes for authentication.
 # --------------------------------------------------------------------------------
 
 from app import templates
-from app.utils.auth import AuthCookie, get_auth_cookie
-
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import FileResponse, RedirectResponse
-from typing import Optional
+from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse
 
 
 # --------------------------------------------------------------------------------
@@ -26,31 +23,27 @@ router = APIRouter()
 # --------------------------------------------------------------------------------
 
 @router.get(
-  path="/",
-  summary="Redirects to the login or reminders pages",
-  tags=["Pages"]
+    path="/",
+    summary="Returns the login page (public)",
+    tags=["Pages"]
 )
-async def read_root(
-  cookie: Optional[AuthCookie] = Depends(get_auth_cookie)
-):
-  path = '/reminders' if cookie else '/login'
-  return RedirectResponse(path, status_code=302)
+async def read_root(request: Request):
+    # Возвращаем страницу логина без редиректа, чтобы check мог прочитать deploy-ref
+    return templates.TemplateResponse("pages/login.html", {"request": request})
 
 
 @router.get(
-  path="/favicon.ico",
-  include_in_schema=False
+    path="/favicon.ico",
+    include_in_schema=False
 )
 async def get_favicon():
-  return FileResponse("static/img/favicon.ico")
+    return FileResponse("static/img/favicon.ico")
 
 
 @router.get(
-  path="/not-found",
-  summary="Gets the \"Not Found\" page",
-  tags=["Pages"]
+    path="/not-found",
+    summary="Gets the \"Not Found\" page",
+    tags=["Pages"]
 )
-async def get_not_found(
-  request: Request
-):
-  return templates.TemplateResponse("pages/not-found.html", {'request': request})
+async def get_not_found(request: Request):
+    return templates.TemplateResponse("pages/not-found.html", {'request': request})
