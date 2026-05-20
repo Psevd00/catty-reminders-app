@@ -6,7 +6,7 @@ This module provides routes for root and favicon.
 # Imports
 # --------------------------------------------------------------------------------
 
-from app import templates
+from app import templates, DEPLOY_REF
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
 
@@ -28,8 +28,8 @@ router = APIRouter()
     tags=["Pages"]
 )
 async def read_root(request: Request):
-    # Возвращаем страницу логина без редиректа, чтобы check мог прочитать deploy-ref
-    return templates.TemplateResponse("pages/login.html", {"request": request})
+    # Возвращаем страницу логина без редиректа, с deploy-ref для check
+    return templates.TemplateResponse("pages/login.html", {"request": request, "DEPLOY_REF": DEPLOY_REF})
 
 
 @router.get(
