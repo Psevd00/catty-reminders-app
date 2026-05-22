@@ -1,9 +1,10 @@
-FROM python:3.12-slim
+FROM python:3.12
 
-ARG DEPLOY_REF
-ENV DEPLOY_REF=$DEPLOY_REF
+ARG DEPLOY_REF=unknown
+ENV DEPLOY_REF=${DEPLOY_REF}
+LABEL deploy_ref=${DEPLOY_REF}
 
-WORKDIR /app
+WORKDIR /catty-reminders-app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -11,7 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 COPY static/ ./static/
 COPY templates/ ./templates/
-COPY config.json .
 
 EXPOSE 8181
 

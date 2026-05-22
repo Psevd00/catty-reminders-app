@@ -1,138 +1,52 @@
 ![Catty Logo](static/img/logos/catty-100px.png)
 
-# Catty: The Reminders App
+# Catty: The Reminders App (Multicontainer version)
 
-*Catty* is a small demo web app for tracking reminders.
-It uses:
+*Catty* — это демонстрационное веб-приложение для заметок-напоминаний.  
+В данной версии приложение разделено на два Docker-контейнера:
+- **db** – база данных MariaDB (персистентный слой через volume)
+- **catty-app** – само FastAPI-приложение
 
-* [Python](https://www.python.org/) as the main programming language
-* [FastAPI](https://fastapi.tiangolo.com/) for the backend
-* [HTMX](https://htmx.org/) 1.8.6 for handling dynamic interactions (instead of raw JavaScript)
-* [Jinja templates](https://jinja.palletsprojects.com/en/3.1.x/) with HTML and CSS for the frontend
-* [TinyDB](https://tinydb.readthedocs.io/en/latest/index.html) for the database
-* [Playwright](https://playwright.dev/python/) and [pytest](https://docs.pytest.org/) for testing
+Все компоненты оркестрируются с помощью **Docker Compose**.
 
-## Installing dependencies
+## Технологии
 
-You will need a recent version of Python to run this app.
-To install project dependencies:
+- Python 3.12, FastAPI, HTMX, Jinja2
+- MariaDB 11
+- Docker, Docker Compose
+- GitHub Actions (CI/CD: линтинг, тесты, сборка образа, деплой на виртуальную машину)
 
-```
-pip install -r requirements.txt
-```
+## Требования к окружению
 
-It is recommended to install dependencies into a [virtual environment](https://docs.python.org/3/library/venv.html).
+- Установленные **Docker** (Engine 20.10+) и **Docker Compose** (v2 или standalone `docker-compose`)
+- Доступ к GitHub Container Registry (ghcr.io) – для скачивания готового образа приложения
+- Для ручного деплоя: SSH-доступ к виртуальной машине (course.prafdin.ru, порт 3102, пользователь `password_123`)
 
+## Переменные окружения
 
-## Running the app
+Перед запуском через Docker Compose необходимо задать переменные окружения.  
+Вы можете поместить их в файл **`.env`** в той же директории, что и `docker-compose.yaml`, или экспортировать вручную.
 
-Prepare environment variables from template and export it:
-```bash
-cp .env.example .env
-# Edit the .env file as needed
-set -a; source .env; set +a
-```
+| Переменная | Описание | Пример значения |
+|------------|----------|------------------|
+| `IMAGE` | Полное имя образа приложения (в ghcr.io) | `ghcr.io/psevd00/catty-reminders-app:latest` |
+| `APP_CONTAINER_NAME` | Имя контейнера приложения | `catty-app` |
+| `MARIADB_ROOT_PASSWORD` | Пароль root для MariaDB | `mypass` |
+| `MARIADB_USER` | Пользователь MariaDB для приложения | `password_123` |
+| `MARIADB_PASSWORD` | Пароль этого пользователя | `mypass` |
+| `MARIADB_DATABASE` | Имя базы данных | `catty_reminders` |
+| `HOST_DB_PORT` | Порт на хосте для MariaDB | `3306` |
+| `CONTAINER_DB_PORT` | Порт внутри контейнера MariaDB | `3306` |
+| `HOST_APP_PORT` | Порт на хосте для веб-приложения | `8181` |
+| `CONTAINER_APP_PORT` | Порт внутри контейнера приложения | `8181` |
+| `DEPLOY_REF` | Ревизия (commit hash) для маркировки деплоя | `manual` или `${{ github.sha }}` |
 
-To run the app:
+Все переменные (кроме `DEPLOY_REF`) **обязательны**.
 
-```
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8181
-```
+## Запуск приложения вручную (на вашей ВМ)
 
-Then, open your browser to [`http://127.0.0.1:8181`](http://127.0.0.1:8181) to load the app.
-
-
-
-## Logging into the app
-
-The [`config.json`](config.json) file declares the users for the app.
-You may use any configured user credentials, or change them to your liking.
-
-## Setting the database path
-
-The app uses TinyDB, which stores the database as a JSON file.
-The default database filepath is `reminder_db.json`.
-You may change this path in [`config.json`](config.json).
-If you change the filepath, the app will automatically create a new, empty database.
-
-
-## Using the app
-
-Catty is a reminders app.
-After you log in, you can create reminder lists.
-
-![Catty login](static/img/readme/catty-login.png)
-
-Each reminder list appears on the left,
-and the items in the list appear on the right.
-You may add, delete, or edit lists and items.
-You may also strike out completed items.
-
-![Catty reminders](static/img/readme/catty-reminders.png)
-
-
-## Running tests
-
-The app includes comprehensive tests using pytest and Playwright. Before running tests, make sure the app is running on `http://127.0.0.1:8181`.
-
-First, install test dependencies if you haven't already:
-
-```bash
-pip install -r requirements.txt
-```
-
-Install Playwright browsers for UI testing:
-
-```bash
-playwright install --with-deps chromium
-```
-
-Then configure test settings in `inputs.json`:
-
-```json
-{
-  "base_url": "http://127.0.0.1:8181",
-  "users": [
-    {
-      "username": "heisenberg",
-      "password": "P@ssw0rd"
-    },
-    {
-      "username": "tester", 
-      "password": "foobar123"
-    }
-  ]
-}
-```
-
-Run all tests:
-
-```bash
-python3 -m pytest
-```
-
-Run specific test types:
-
-```bash
-# Unit tests only
-python3 -m pytest tests/test_unit.py
-
-# API tests only  
-python3 -m pytest tests/test_api.py
-
-# UI tests only
-python3 -m pytest -s -v --browser chromium tests/test_ui.py
-```
-
-Run tests with verbose output:
-
-```bash
-python3 -m pytest -v --browser chromium tests
-```
-
-## Reading the docs
-
-To read the API docs, open the following pages:
-
-* [`/docs`](http://127.0.0.1:8181/docs) for classic OpenAPI docs
-* [`/redoc`](http://127.0.0.1:8181/redoc) for more modern ReDoc docs
+1. **Клонируйте репозиторий** и перейдите в ветку `lab4`:
+   ```bash
+   git clone https://github.com/psevd00/catty-reminders-app.git
+   cd catty-reminders-app
+   git checkout lab4
