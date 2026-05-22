@@ -28,5 +28,5 @@ jobs:
             export HOST_APP_PORT=8181
             export CONTAINER_APP_PORT=8181
             export DEPLOY_REF=${{ github.sha }}
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | /usr/bin/docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker-compose up -d --pull always --remove-orphans --force-recreate
